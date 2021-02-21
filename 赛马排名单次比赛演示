@@ -1,0 +1,147 @@
+import numpy as np
+import random
+
+
+class horse:
+    def __init__(self, number, speed, rank, follow):
+        self.__number__ = number
+        self.__speed__ = speed
+        self.__rank__ = rank
+        self.__follow__ = follow
+
+    def __str__(self):
+        return str("number:{} speed:{} rank:{} follow:{}".format(self.__number__, self.__speed__, self.__rank__, self.__follow__))
+
+    
+def groups(init_list, children_list_len):                     #将所有马分组
+    groups = zip(*(iter(init_list),) *children_list_len)
+    end_list = [list(i) for i in groups]
+    count = len(init_list) % children_list_len
+    end_list.append(init_list[-count:]) if count !=0 else end_list
+    return end_list      
+
+def race(tracks):                           #比赛
+    nowrank = 99
+    nownumber = 0 
+    for track in tracks:                    #获取比赛组最低排名
+        now_rank = track.__rank__
+        if nowrank <= now_rank:
+            nowrank = nowrank
+        else:
+            nowrank = now_rank
+    tracks = sorted(tracks, key=lambda track: track.__speed__)           #开始比赛     
+    for track in tracks:                                                 #修改排名
+        if track.__rank__ == nowrank:
+            pass
+        else:   
+            track.__follow__ = nownumber
+        track.__rank__ = nowrank
+        nownumber = track.__number__
+        nowrank += 1
+    for horse in tracks:                    #公布比赛结果
+        print(horse)
+    print("-"*50)
+    return tracks
+
+def update_rank(group):            #更新排名
+    get_num = 0
+    get_rank = 0
+    for horse in group:
+        if horse.__follow__ == get_num:
+            horse.__rank__ = get_rank + 1
+        else:
+            pass
+        get_num = horse.__number__
+        get_rank = horse.__rank__
+
+def get_allrank():                 #获取当前排名情况
+    allrank = []
+    for group in horses:
+        for horse in group:
+            allrank.append(horse.__rank__)
+    allrank.sort()
+    return allrank
+
+def pick_horse_rank(horse_rank):    #获取要挑选马的排名
+    position = 0
+    record = 0
+    for i in horse_rank:
+        if record == i:
+            return horse_rank[position - 1:position + tracks_num - 1]
+        position += 1    
+        record = i
+
+def pick_horse(all_horses, pick_horse_rank):     #根据排名挑选下一轮要参赛的马
+    next_round_horses = []
+    for horse in all_horses:
+        if horse.__rank__ in pick_horse_rank:
+            pick_horse_rank.remove(horse.__rank__)
+            next_round_horses.append(horse)
+        else:
+            pass
+        if pick_horse_rank == []:
+            return next_round_horses
+        else:
+            pass
+
+if __name__ == '__main__':
+    horses_num = int(input("请输入参赛马的数量："))
+    tracks_num = int(input("请输入赛道的数量："))
+    how_many_rankings = int(input("请输入确认到第几名："))
+    is_show_rank = int(input("是否每次跨组比赛查看排名变化情况，是则输入1否则输入0："))
+    random = np.random.RandomState(int(random.random()*10000))
+    race_times = 0
+    horses = [horse(i+1, random.uniform(0., 1.), 1, 0) for i in range(horses_num)]    #初始化分组
+    horses = groups(horses, tracks_num)
+    print("让我们看看运动员的英姿")
+    for group in horses:
+        for horse in group:
+            print(horse)
+    print("-"*50)
+    
+    print("组内排名赛开始")          #组内初赛
+    each_group = 0                
+    for groups in horses:
+        race_times += 1
+        print("这是第{}次比赛".format(race_times))
+        horses[each_group] = race(groups)
+        each_group += 1
+        update_rank(groups)
+    print("组内排名赛结束")
+    for groups in horses:
+        for horse in groups:
+            print(horse)
+    print("-"*50)
+    all_horses = []
+    for groups in horses:
+        all_horses += groups
+
+    print("跨组比赛开始")                #与其他组比赛直到排出所有名次
+    while get_allrank()[-1] != horses_num:
+        if pick_horse_rank(get_allrank()) == None:
+            break
+        elif pick_horse_rank(get_allrank())[0] > how_many_rankings:
+            break
+        race_times += 1
+        print("这是第{}次比赛".format(race_times))
+        race_group = race(pick_horse(all_horses, pick_horse_rank(get_allrank())))
+        for groups in horses:
+            update_rank(groups)
+        if is_show_rank == 1:
+            for group in horses:
+                for horse in group:
+                    print(horse)
+        else:
+            pass
+    print("本次比赛已经结束")
+  
+    finally_rank = []                          #公布最终排名
+    for group in horses:
+        for horse in group:
+            finally_rank.append(horse)
+    finally_rank = sorted(finally_rank, key=lambda track: track.__rank__)
+    for horse in finally_rank:
+        print(horse)
+    print("-"*50)
+    print("总共用了{}场比赛".format(race_times))
+
